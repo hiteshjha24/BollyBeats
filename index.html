@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BollyBeats | Discover Indian Music</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #f59e0b;
+            --primary-dark: #d97706;
+            --secondary: #ec4899;
+            --dark: #0f172a;
+            --light: #f8fafc;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            transition: all 0.3s ease;
+        }
+        
+        .chip {
+            transition: all 0.2s ease;
+            transform: scale(1);
+        }
+        
+        .chip:hover {
+            transform: scale(1.05);
+        }
+        
+        .chip.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+        
+        .song-card {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .song-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .song-card.entering {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .song-card.exiting {
+            animation: fadeOut 0.3s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+        }
+        
+        .play-button {
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+        
+        .song-card:hover .play-button {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        
+        .theme-toggle {
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle:hover {
+            transform: rotate(30deg);
+        }
+        
+        /* Search bar animation */
+        .search-bar {
+            transition: all 0.3s ease;
+            width: 200px;
+        }
+        
+        .search-bar:focus-within {
+            width: 300px;
+        }
+        
+        /* Scroll reveal animations */
+        [data-scroll] {
+            opacity: 0;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        
+        [data-scroll="fade-up"] {
+            transform: translateY(30px);
+        }
+        
+        [data-scroll].is-visible {
+            opacity: 1;
+            transform: translate(0);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-100">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header with Search -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-4">
+            <div class="flex items-center">
+                <i class="fas fa-music text-yellow-500 text-3xl mr-3"></i>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-yellow-500 to-pink-500 bg-clip-text text-transparent">BollyBeats</h1>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="search-bar relative flex items-center bg-slate-800 rounded-full px-4 py-2 focus-within:ring-2 focus-within:ring-yellow-500">
+                    <i class="fas fa-search text-slate-400 mr-2"></i>
+                    <input id="searchInput" type="text" placeholder="Search songs..." class="bg-transparent border-none outline-none w-full text-white placeholder-slate-400">
+                    <button id="searchBtn" class="absolute right-2 text-slate-400 hover:text-white">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                
+                <button id="themeToggle" class="theme-toggle p-2 rounded-full bg-slate-800 hover:bg-slate-700">
+                    <i class="fas fa-moon text-yellow-300"></i>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Hero Section -->
+        <section class="mb-16 text-center" data-scroll="fade-up">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4">Discover Indian Music Magic</h2>
+            <p class="text-xl text-slate-300 max-w-2xl mx-auto">Select your favorite genres and artists to get personalized Bollywood music recommendations.</p>
+        </section>
+        
+        <!-- Genre Selection -->
+        <section class="mb-16" data-scroll="fade-up">
+            <h3 class="text-2xl font-semibold mb-6 flex items-center">
+                <i class="fas fa-sliders-h mr-3 text-yellow-500"></i> 
+                Select Your Genres
+            </h3>
+            <div id="genreContainer" class="flex flex-wrap gap-3">
+                <!-- Genres populated by JavaScript -->
+            </div>
+        </section>
+        
+        <!-- Artist Selection -->
+        <section class="mb-16" data-scroll="fade-up">
+            <h3 class="text-2xl font-semibold mb-6 flex items-center">
+                <i class="fas fa-users mr-3 text-pink-500"></i> 
+                Favorite Indian Artists
+            </h3>
+            <div id="artistContainer" class="flex flex-wrap gap-3">
+                <!-- Artists populated by JavaScript -->
+            </div>
+        </section>
+        
+        <!-- Recommendations Section -->
+        <section data-scroll="fade-up">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-semibold flex items-center">
+                    <i class="fas fa-headphones mr-3 text-yellow-500"></i> 
+                    Your Recommendations
+                </h3>
+                <div id="selectedFilters" class="text-sm text-slate-400">
+                    <!-- Active filters shown here -->
+                </div>
+            </div>
+            
+            <div id="recommendationsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div class="text-center py-12 text-slate-500" id="noSelectionsMessage">
+                    <i class="fas fa-music text-4xl mb-4"></i>
+                    <p>Select genres or artists to see recommendations</p>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <!-- Audio Player -->
+    <div id="audioPlayer" class="fixed bottom-0 left-0 right-0 bg-slate-800 p-4 shadow-lg hidden">
+        <div class="container mx-auto flex items-center">
+            <div class="flex items-center w-1/4">
+                <img id="nowPlayingArt" src="" alt="Album Art" class="w-12 h-12 rounded mr-3">
+                <div>
+                    <div id="nowPlayingTitle" class="font-medium truncate">Song Title</div>
+                    <div id="nowPlayingArtist" class="text-sm text-slate-400 truncate">Artist Name</div>
+                </div>
+            </div>
+            <div class="flex flex-col items-center justify-center w-2/4">
+                <div class="flex items-center mb-2">
+                    <button id="prevBtn" class="mx-2 text-slate-400 hover:text-white">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    <button id="playBtn" class="mx-3 bg-yellow-600 hover:bg-yellow-700 rounded-full w-10 h-10 flex items-center justify-center">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button id="nextBtn" class="mx-2 text-slate-400 hover:text-white">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                </div>
+                <div class="w-full flex items-center">
+                    <span id="currentTime" class="text-xs text-slate-400 mr-2">0:00</span>
+                    <div class="progress-bar flex-grow mx-2 rounded-full">
+                        <div id="progress" class="progress rounded-full"></div>
+                    </div>
+                    <span id="duration" class="text-xs text-slate-400 ml-2">0:30</span>
+                </div>
+            </div>
+            <div class="flex items-center justify-end w-1/4">
+                <button id="volumeBtn" class="mx-2 text-slate-400 hover:text-white">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <input id="volumeControl" type="range" min="0" max="1" step="0.01" value="0.7" class="w-24">
+            </div>
+        </div>
+        <audio id="audioElement"></audio>
+    </div>
+
+    <script>
+        // Spotify API credentials (in production, use environment variables)
+        const SPOTIFY_CLIENT_ID = 'd290915d87884cca985e0d2400241dd5';
+        const SPOTIFY_REDIRECT_URI = encodeURIComponent(window.location.origin);
+        const SPOTIFY_SCOPES = 'user-read-private user-read-email';
+        
+        // Music database with Indian artists
+        const musicDatabase = {
+            genres: [
+                'Bollywood', 'Indie', 'Classical', 'Ghazal', 'Sufi', 
+                'Punjabi', 'Pop', 'Rock', 'Folk', 'Devotional', 
+                'Romantic', 'Dance', 'Retro', 'Item Song', 'Patriotic'
+            ],
+            
+            artists: [
+                { name: 'Arijit Singh', genres: ['Bollywood', 'Romantic'] },
+                { name: 'Shreya Ghoshal', genres: ['Bollywood', 'Classical'] },
+                { name: 'A.R. Rahman', genres: ['Bollywood', 'Sufi'] },
+                { name: 'Neha Kakkar', genres: ['Bollywood', 'Pop'] },
+                { name: 'Diljit Dosanjh', genres: ['Punjabi', 'Pop'] },
+                { name: 'Lata Mangeshkar', genres: ['Bollywood', 'Classical'] },
+                { name: 'Kishore Kumar', genres: ['Bollywood', 'Retro'] },
+                { name: 'Badshah', genres: ['Bollywood', 'Dance'] },
+                { name: 'Sunidhi Chauhan', genres: ['Bollywood', 'Item Song'] },
+                { name: 'Jagjit Singh', genres: ['Ghazal', 'Classical'] },
+                { name: 'Sonu Nigam', genres: ['Bollywood', 'Devotional'] },
+                { name: 'Alka Yagnik', genres: ['Bollywood', 'Romantic'] },
+                { name: 'KK', genres: ['Bollywood', 'Rock'] },
+                { name: 'Udit Narayan', genres: ['Bollywood', 'Romantic'] },
+                { name: 'Honey Singh', genres: ['Punjabi', 'Dance'] },
+                { name: 'Asha Bhosle', genres: ['Bollywood', 'Retro'] }
+            ],
+            
+            songs: [
+                { 
+                    title: 'Tum Hi Ho', 
+                    artist: 'Arijit Singh', 
+                    genre: 'Romantic', 
+                    duration: '4:22',
+                    spotifyId: '3mSDw8p5bwPYx5GHUGdA1N'
+                },
+                { 
+                    title: 'Chaiyya Chaiyya', 
+                    artist: 'A.R. Rahman', 
+                    genre: 'Bollywood', 
+                    duration: '6:56',
+                    spotifyId: '5L4JBkX9VK7yDn9WJvVoYW'
+                },
+                { 
+                    title: 'Dilbar', 
+                    artist: 'Neha Kakkar', 
+                    genre: 'Dance', 
+                    duration: '3:04',
+                    spotifyId: '4d0k1Qp1wI1lNz4z2X1W3M'
+                },
+                { 
+                    title: 'Lahore', 
+                    artist: 'Diljit Dosanjh', 
+                    genre: 'Punjabi', 
+                    duration: '3:13',
+                    spotifyId: '6vQE8L9XJd7FZG0W5TZ5dY'
+                },
+                { 
+                    title: 'Agar Tum Saath Ho', 
+                    artist: 'Alka Yagnik', 
+                    genre: 'Romantic', 
+                    duration: '5:41',
+                    spotifyId: '3hy6d5A7Y6FbYqFDfsY8Xj'
+                },
+                { 
+                    title: 'Badtameez Dil', 
+                    artist: 'Badshah', 
+                    genre: 'Dance', 
+                    duration: '3:19',
+                    spotifyId: '0OQK2bQ5vM1GwAqaR7H4pA'
+                },
+                { 
+                    title: 'Tere Bina', 
+                    artist: 'A.R. Rahman', 
+                    genre: 'Sufi', 
+                    duration: '5:09',
+                    spotifyId: '4FeczSomVWVy5gXQeSrZx7'
+                },
+                { 
+                    title: 'Gallan Goodiyaan', 
+                    artist: 'Shreya Ghoshal', 
+                    genre: 'Bollywood', 
+                    duration: '4:56',
+                    spotifyId: '7hBJvBAr3U1NlZ9e5wQk6t'
+                },
+                { 
+                    title: 'Tum Se Hi', 
+                    artist: 'Mohit Chauhan', 
+                    genre: 'Romantic', 
+                    duration: '5:21',
+                    spotifyId: '5e2C5wJ5YJz6J8bbx5M1Yz'
+                },
+                { 
+                    title: 'Senorita', 
+                    artist: 'Arijit Singh', 
+                    genre: 'Romantic', 
+                    duration: '3:42',
+                    spotifyId: '0TK2YIli7K1leLovkQiNik'
+                }
+            ]
+        };
+
+        // App state
+        const state = {
+            selectedGenres: [],
+            selectedArtists: [],
+            currentSong: null,
+            isPlaying: false,
+            volume: 0.7,
+            accessToken: null
+        };
+
+        // DOM elements
+        const elements = {
+            genreContainer: document.getElementById('genreContainer'),
+            artistContainer: document.getElementById('artistContainer'),
+            recommendationsContainer: document.getElementById('recommendationsContainer'),
+            selectedFilters: document.getElementById('selectedFilters'),
+            noSelectionsMessage: document.getElementById('noSelectionsMessage'),
+            audioPlayer: document.getElementById('audioPlayer'),
+            audioElement: document.getElementById('audioElement'),
+            nowPlayingArt: document.getElementById('nowPlayingArt'),
+            nowPlayingTitle: document.getElementById('nowPlayingTitle'),
+            nowPlayingArtist: document.getElementById('nowPlayingArtist'),
+            playBtn: document.getElementById('playBtn'),
+            prevBtn: document.getElementById('prevBtn'),
+            nextBtn: document.getElementById('nextBtn'),
+            progress: document.getElementById('progress'),
+            currentTime: document.getElementById('currentTime'),
+            duration: document.getElementById('duration'),
+            volumeBtn: document.getElementById('volumeBtn'),
+            volumeControl: document.getElementById('volumeControl'),
+            themeToggle: document.getElementById('themeToggle'),
+            searchInput: document.getElementById('searchInput'),
+            searchBtn: document.getElementById('searchBtn')
+        };
+
+        // Initialize the app
+        async function init() {
+            renderGenres();
+            renderArtists();
+            setupEventListeners();
+            setupIntersectionObserver();
+            await authenticateWithSpotify();
+        }
+
+        // Authenticate with Spotify (Client Credentials Flow)
+        async function authenticateWithSpotify() {
+            try {
+                const response = await fetch('https://accounts.spotify.com/api/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Basic ' + btoa(SPOTIFY_CLIENT_ID + ':' + 'bc229e3e95c84ca7837fbf5eec72467a') // Replace with your client secret
+                    },
+                    body: 'grant_type=client_credentials'
+                });
+                
+                const data = await response.json();
+                state.accessToken = data.access_token;
+                console.log('Spotify authentication successful');
+            } catch (error) {
+                console.error('Spotify authentication failed:', error);
+            }
+        }
+
+        // Get Spotify track details
+        async function getSpotifyTrack(trackId) {
+            if (!state.accessToken) return null;
+            
+            try {
+                const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${state.accessToken}`
+                    }
+                });
+                const data = await response.json();
+                
+                // Extract the highest resolution album art (640x640 or fallback)
+                const coverArt = data.album?.images?.find(img => img.width === 640)?.url || 
+                                data.album?.images?.[0]?.url || 
+                                `https://via.placeholder.com/640/0f172a/f59e0b?text=No+Cover`;
+                
+                return { ...data, coverArt };
+            } catch (error) {
+                console.error('Error fetching track:', error);
+                return null;
+            }
+        }
+
+        // Search songs on Spotify
+        async function searchSpotifyTracks(query) {
+            if (!state.accessToken) return [];
+            
+            try {
+                const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`, {
+                    headers: {
+                        'Authorization': `Bearer ${state.accessToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                return data.tracks.items.map(item => ({
+                    title: item.name,
+                    artist: item.artists.map(a => a.name).join(', '),
+                    genre: 'Search Result',
+                    duration: formatSpotifyDuration(item.duration_ms),
+                    spotifyId: item.id,
+                    cover: item.album.images[0]?.url
+                }));
+            } catch (error) {
+                console.error('Error searching tracks:', error);
+                return [];
+            }
+        }
+
+        function formatSpotifyDuration(ms) {
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+        }
+
+        // Render genre chips
+        function renderGenres() {
+            elements.genreContainer.innerHTML = '';
+            musicDatabase.genres.forEach(genre => {
+                const isActive = state.selectedGenres.includes(genre);
+                const chip = document.createElement('div');
+                chip.className = `chip px-4 py-2 rounded-full cursor-pointer border ${isActive ? 'active border-yellow-500 bg-yellow-600 text-white' : 'border-slate-600 bg-slate-800 hover:bg-slate-700'}`;
+                chip.textContent = genre;
+                chip.dataset.genre = genre;
+                chip.addEventListener('click', () => toggleGenre(genre));
+                elements.genreContainer.appendChild(chip);
+            });
+        }
+
+        // Render artist chips
+        function renderArtists() {
+            elements.artistContainer.innerHTML = '';
+            musicDatabase.artists.forEach(artist => {
+                const isActive = state.selectedArtists.includes(artist.name);
+                const chip = document.createElement('div');
+                chip.className = `chip px-4 py-2 rounded-full cursor-pointer border ${isActive ? 'active border-pink-500 bg-pink-600 text-white' : 'border-slate-600 bg-slate-800 hover:bg-slate-700'}`;
+                chip.textContent = artist.name;
+                chip.dataset.artist = artist.name;
+                chip.addEventListener('click', () => toggleArtist(artist.name));
+                elements.artistContainer.appendChild(chip);
+            });
+        }
+
+        // Toggle genre selection
+        function toggleGenre(genre) {
+            const index = state.selectedGenres.indexOf(genre);
+            if (index === -1) {
+                state.selectedGenres.push(genre);
+            } else {
+                state.selectedGenres.splice(index, 1);
+            }
+            renderGenres();
+            updateRecommendations();
+        }
+
+        // Toggle artist selection
+        function toggleArtist(artist) {
+            const index = state.selectedArtists.indexOf(artist);
+            if (index === -1) {
+                state.selectedArtists.push(artist);
+            } else {
+                state.selectedArtists.splice(index, 1);
+            }
+            renderArtists();
+            updateRecommendations();
+        }
+
+        // Update recommendations based on selections
+        function updateRecommendations() {
+            if (state.selectedGenres.length === 0 && state.selectedArtists.length === 0) {
+                elements.noSelectionsMessage.classList.remove('hidden');
+                elements.recommendationsContainer.innerHTML = '';
+                elements.recommendationsContainer.appendChild(elements.noSelectionsMessage);
+                elements.selectedFilters.textContent = '';
+                return;
+            } else {
+                elements.noSelectionsMessage.classList.add('hidden');
+            }
+
+            // Update selected filters display
+            const filters = [];
+            if (state.selectedGenres.length > 0) {
+                filters.push(`Genres: ${state.selectedGenres.join(', ')}`);
+            }
+            if (state.selectedArtists.length > 0) {
+                filters.push(`Artists: ${state.selectedArtists.join(', ')}`);
+            }
+            elements.selectedFilters.textContent = filters.join(' • ');
+
+            // Filter songs based on selections
+            let recommendedSongs = [];
+            
+            if (state.selectedGenres.length > 0 && state.selectedArtists.length > 0) {
+                recommendedSongs = musicDatabase.songs.filter(song => 
+                    state.selectedGenres.includes(song.genre) || 
+                    state.selectedArtists.includes(song.artist)
+                );
+            } else if (state.selectedGenres.length > 0) {
+                recommendedSongs = musicDatabase.songs.filter(song => 
+                    state.selectedGenres.includes(song.genre)
+                );
+            } else if (state.selectedArtists.length > 0) {
+                recommendedSongs = musicDatabase.songs.filter(song => 
+                    state.selectedArtists.includes(song.artist)
+                );
+            }
+
+            recommendedSongs = [...new Map(recommendedSongs.map(song => [song.title, song])).values()];
+            recommendedSongs = shuffleArray(recommendedSongs).slice(0, 12);
+            renderRecommendations(recommendedSongs);
+        }
+
+        // Render song recommendations with animations
+        async function renderRecommendations(songs) {
+            const container = elements.recommendationsContainer;
+            
+            // Mark existing cards as exiting
+            const existingCards = Array.from(container.children).filter(child => child !== elements.noSelectionsMessage);
+            existingCards.forEach(card => {
+                card.classList.add('exiting');
+            });
+            
+            setTimeout(async () => {
+                existingCards.forEach(card => {
+                    if (card.parentNode) card.parentNode.removeChild(card);
+                });
+                
+                for (const [index, song] of songs.entries()) {
+                    // Get Spotify cover art if available
+                    const spotifyData = song.spotifyId ? await getSpotifyTrack(song.spotifyId) : null;
+                    const coverArt = spotifyData?.coverArt || 
+                                   `https://via.placeholder.com/300/0f172a/f59e0b?text=${encodeURIComponent(song.title.substring(0, 10))}`;
+                    
+                    const card = createSongCard({
+                        ...song,
+                        cover: coverArt
+                    });
+                    
+                    card.classList.add('entering');
+                    container.appendChild(card);
+                    
+                    setTimeout(() => {
+                        card.classList.remove('entering');
+                    }, index * 50);
+                }
+            }, 300);
+        }
+
+        // Create a song card element
+        function createSongCard(song) {
+            const card = document.createElement('div');
+            card.className = 'song-card bg-slate-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 relative';
+            card.dataset.songId = song.title.toLowerCase().replace(/\s+/g, '-');
+            
+            card.innerHTML = `
+                <div class="relative">
+                    <img src="${song.cover}" alt="${song.title}" 
+                         class="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+                         onerror="this.src='https://via.placeholder.com/300/0f172a/f59e0b?text=No+Cover'">
+                    <button class="play-button absolute bottom-4 right-4 bg-yellow-600 hover:bg-yellow-700 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <h4 class="font-semibold text-lg truncate">${song.title}</h4>
+                    <p class="text-slate-400 text-sm truncate">${song.artist}</p>
+                    <div class="flex justify-between items-center mt-2">
+                        <span class="text-xs px-2 py-1 rounded-full bg-slate-700 text-slate-300">${song.genre}</span>
+                        <span class="text-xs text-slate-500">${song.duration}</span>
+                    </div>
+                </div>
+            `;
+            
+            const playBtn = card.querySelector('.play-button');
+            playBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                playSong(song);
+            });
+            
+            return card;
+        }
+
+        // Play a song with Spotify preview
+        async function playSong(song) {
+            if (!song.spotifyId) {
+                alert('No preview available for this song');
+                return;
+            }
+
+            const spotifyData = await getSpotifyTrack(song.spotifyId);
+            if (!spotifyData || !spotifyData.preview_url) {
+                alert('No preview available for this song');
+                return;
+            }
+
+            state.currentSong = song;
+            state.isPlaying = true;
+            
+            // Update audio player UI
+            elements.nowPlayingArt.src = spotifyData.coverArt;
+            elements.nowPlayingTitle.textContent = song.title;
+            elements.nowPlayingArtist.textContent = song.artist;
+            elements.playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            elements.audioPlayer.classList.remove('hidden');
+            
+            // Set audio source
+            elements.audioElement.src = spotifyData.preview_url;
+            elements.audioElement.volume = state.volume;
+            elements.audioElement.play();
+            
+            // Update duration display
+            elements.duration.textContent = formatTime(30); // Spotify previews are 30s
+            
+            // Update progress bar in real-time
+            elements.audioElement.ontimeupdate = function() {
+                const progressPercent = (elements.audioElement.currentTime / 30) * 100;
+                elements.progress.style.width = `${progressPercent}%`;
+                elements.currentTime.textContent = formatTime(elements.audioElement.currentTime);
+            };
+            
+            // Handle song end
+            elements.audioElement.onended = function() {
+                state.isPlaying = false;
+                elements.playBtn.innerHTML = '<i class="fas fa-play"></i>';
+            };
+        }
+
+        // Format time as MM:SS
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        // Shuffle array
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Audio player controls
+            elements.playBtn.addEventListener('click', () => {
+                state.isPlaying = !state.isPlaying;
+                if (state.isPlaying) {
+                    elements.playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                    elements.audioElement.play();
+                } else {
+                    elements.playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    elements.audioElement.pause();
+                }
+            });
+            
+            elements.volumeControl.addEventListener('input', (e) => {
+                state.volume = e.target.value;
+                elements.audioElement.volume = state.volume;
+            });
+            
+            // Theme toggle
+            elements.themeToggle.addEventListener('click', toggleTheme);
+            
+            // Search functionality
+            elements.searchBtn.addEventListener('click', handleSearch);
+            elements.searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleSearch();
+            });
+        }
+
+        // Handle search
+        async function handleSearch() {
+            const query = elements.searchInput.value.trim();
+            if (!query) return;
+            
+            const results = await searchSpotifyTracks(query + ' Bollywood');
+            if (results.length > 0) {
+                renderRecommendations(results);
+                elements.selectedFilters.textContent = `Search: ${query}`;
+            } else {
+                alert('No results found');
+            }
+        }
+
+        // Toggle dark/light theme
+        function toggleTheme() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                elements.themeToggle.innerHTML = '<i class="fas fa-sun text-yellow-500"></i>';
+            } else {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                elements.themeToggle.innerHTML = '<i class="fas fa-moon text-yellow-300"></i>';
+            }
+        }
+        
+        // Set up intersection observer for scroll animations
+        function setupIntersectionObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            document.querySelectorAll('[data-scroll]').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
